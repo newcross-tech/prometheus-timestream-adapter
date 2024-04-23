@@ -6,6 +6,10 @@ on:
 env:
   IMAGE_ECR_NAMESPACE: "newcross"
 
+permissions:
+  id-token: write   # This is required for requesting the JWT
+  contents: read    # This is required for actions/checkout
+  
 jobs:
   RunTests:
     runs-on: ubuntu-latest
@@ -52,7 +56,7 @@ jobs:
         uses: docker/metadata-action@v4
         with:
           images: |
-            dpattmann/prometheus-timestream-adapter
+            newcross-tech/prometheus-timestream-adapter
           tags: |
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
