@@ -99,7 +99,7 @@ jobs:
           
       - name: Create ECR Repository
         shell: bash
-        run: aws ecr describe-repositories --repository-names ${{env.ECR_REPOSITORY}} --region ${{inputs.aws-region}} || aws ecr create-repository --repository-name ${{env.ECR_REPOSITORY}} --region ${{inputs.aws-region}}
+        run: aws ecr describe-repositories --repository-names ${{env.ECR_REPOSITORY}} --region ${{vars.AWS_REGION}} || aws ecr create-repository --repository-name ${{env.ECR_REPOSITORY}} --region ${{vars.AWS_REGION}}
 
       - name: Build and Push Image
         id: build-and-push
