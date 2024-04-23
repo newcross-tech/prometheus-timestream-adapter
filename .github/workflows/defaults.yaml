@@ -36,7 +36,7 @@ jobs:
         uses: goreleaser/goreleaser-action@v5
         with:
           version: latest
-          args: release --rm-dist
+          args: release --clean
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -70,26 +70,54 @@ jobs:
           role-session-name: GitHub_to_AWS_via_FederatedOIDC
           aws-region: ${{ vars.AWS_REGION }}
 
-      - name: Docker Image
-        uses: newcross-tech/build-push-image-to-ecr@v2
+      # - name: Docker Image
+      #   uses: newcross-tech/build-push-image-to-ecr@v2
+      #   with:
+      #     registry-type: private
+      #     aws-account-id: "${{ steps.aws-credentials.outputs.aws-account-id }}"
+      #     ecr-repository: "${{ env.IMAGE_ECR_NAMESPACE }}/${{ github.event.repository.name }}"
+      #     aws-region: ${{ vars.AWS_REGION }}
+      #     #platforms: linux/amd64,linux/arm64
+      #     context: ./
+      #     file: ./Dockerfile
+      #     push-images: ${{ github.ref_name == 'master' || contains(needs.get-commit-message.outputs.message, '[push-image]') }}
+      #     scan-images: false
+      #     image-tag: ${{ steps.meta.outputs.tags }}
+      #     tag-latest: ${{ github.ref_name == 'master' }}
+
+      - name: Amazon ECR login
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
         with:
-          registry-type: private
-          aws-account-id: "${{ steps.aws-credentials.outputs.aws-account-id }}"
-          ecr-repository: "${{ env.IMAGE_ECR_NAMESPACE }}/${{ github.event.repository.name }}"
-          aws-region: ${{ vars.AWS_REGION }}
-          #platforms: linux/amd64,linux/arm64
+          registries: "${{ steps.aws-credentials.outputs.aws-account-id }}"
+          registry-type: "private"
+
+      - name: Set ECR repository name
+        shell: bash
+        run: |
+          echo "ECR_REPOSITORY=${{ env.IMAGE_ECR_NAMESPACE }}/${{ github.event.repository.name }}" >> $GITHUB_ENV
+          
+      - name: Create ECR Repository
+        shell: bash
+        run: aws ecr describe-repositories --repository-names ${{env.ECR_REPOSITORY}} --region ${{inputs.aws-region}} || aws ecr create-repository --repository-name ${{env.ECR_REPOSITORY}} --region ${{inputs.aws-region}}
+
+      - name: Build and Push Image
+        id: build-and-push
+        uses: docker/build-push-action@v5
+        with:
+          platforms: linux/amd64,linux/arm64
           context: ./
           file: ./Dockerfile
-          push-images: ${{ github.ref_name == 'master' || contains(needs.get-commit-message.outputs.message, '[push-image]') }}
-          scan-images: false
-          image-tag: ${{ steps.meta.outputs.tags }}
-          tag-latest: ${{ github.ref_name == 'master' }}
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          provenance: false
 
       # - name: Login to DockerHub
       #   uses: docker/login-action@v2
       #   with:
       #     username: ${{ secrets.DOCKERHUB_USERNAME }}
       #     password: ${{ secrets.DOCKERHUB_TOKEN }}
+
       # - name: Build and push
       #   uses: docker/build-push-action@v4
       #   with:
