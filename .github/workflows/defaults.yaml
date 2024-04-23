@@ -68,8 +68,7 @@ jobs:
         with:
           role-to-assume: ${{ vars.DEV_ASSUME_ROLE }}
           role-session-name: GitHub_to_AWS_via_FederatedOIDC
-          aws-region: "eu-west-2"
-
+          aws-region: ${{ vars.AWS_REGION }}
 
       - name: Amazon ECR login
         id: login-ecr
@@ -85,7 +84,7 @@ jobs:
           
       - name: Create ECR Repository
         shell: bash
-        run: aws ecr describe-repositories --repository-names ${{env.ECR_REPOSITORY}} --region eu-west-2 || aws ecr create-repository --repository-name ${{env.ECR_REPOSITORY}} --region eu-west-2
+        run: aws ecr describe-repositories --repository-names ${{env.ECR_REPOSITORY}} --region ${{vars.AWS_REGION}} || aws ecr create-repository --repository-name ${{env.ECR_REPOSITORY}} --region ${{vars.AWS_REGION}}
 
       - name: Build and Push Image
         id: build-and-push
