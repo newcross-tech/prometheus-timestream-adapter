@@ -68,22 +68,8 @@ jobs:
         with:
           role-to-assume: ${{ vars.DEV_ASSUME_ROLE }}
           role-session-name: GitHub_to_AWS_via_FederatedOIDC
-          aws-region: ${{ vars.AWS_REGION }}
+          aws-region: "eu-west-2"
 
-      # - name: Docker Image
-      #   uses: newcross-tech/build-push-image-to-ecr@v2
-      #   with:
-      #     registry-type: private
-      #     aws-account-id: "${{ steps.aws-credentials.outputs.aws-account-id }}"
-      #     ecr-repository: "${{ env.IMAGE_ECR_NAMESPACE }}/${{ github.event.repository.name }}"
-      #     aws-region: ${{ vars.AWS_REGION }}
-      #     #platforms: linux/amd64,linux/arm64
-      #     context: ./
-      #     file: ./Dockerfile
-      #     push-images: ${{ github.ref_name == 'master' || contains(needs.get-commit-message.outputs.message, '[push-image]') }}
-      #     scan-images: false
-      #     image-tag: ${{ steps.meta.outputs.tags }}
-      #     tag-latest: ${{ github.ref_name == 'master' }}
 
       - name: Amazon ECR login
         id: login-ecr
@@ -99,7 +85,7 @@ jobs:
           
       - name: Create ECR Repository
         shell: bash
-        run: aws ecr describe-repositories --repository-names ${{env.ECR_REPOSITORY}} --region ${{vars.AWS_REGION}} || aws ecr create-repository --repository-name ${{env.ECR_REPOSITORY}} --region ${{vars.AWS_REGION}}
+        run: aws ecr describe-repositories --repository-names ${{env.ECR_REPOSITORY}} --region eu-west-2 || aws ecr create-repository --repository-name ${{env.ECR_REPOSITORY}} --region eu-west-2
 
       - name: Build and Push Image
         id: build-and-push
